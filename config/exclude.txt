@@ -1,0 +1,7 @@
+vendor/
+node_modules/
+build/
+logs/
+backup/
+print_pdf/
+assets/mpdf/
