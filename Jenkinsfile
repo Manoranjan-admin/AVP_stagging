@@ -1,121 +1,126 @@
 pipeline {
-
     agent any
 
-    options {
-        disableConcurrentBuilds()
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-        timeout(time: 30, unit: 'MINUTES')
-        timestamps()
-    }
-
     environment {
-
-        PROJECT_NAME = 'ERP-STAGGING-NEW'
-
-        DEPLOY_PATH = 'D:/Xampp-org/htdocs/erp-stagging-new'
-
-        BACKUP_PATH = 'D:/Xampp-org/htdocs/backup'
-
-        PHP_PATH = 'D:/Xampp-org/php/php.exe'
-
+        PROJECT_NAME = "ERP-STAGGING-NEW"
+        DEPLOY_PATH = "D:\\Xampp-org\\htdocs\\erp-stagging-new"
+        BACKUP_PATH = "D:\\Xampp-org\\htdocs\\backup"
+        BUILD_PATH = "build\\artifact"
+        PHP_PATH = "php"
+        COMPOSER_PATH = "composer"
     }
 
     stages {
 
-        stage('Initialize') {
-
+        stage('Checkout') {
             steps {
-
-                echo "========================================"
-                echo "ERP STAGING CI/CD PIPELINE"
-                echo "========================================"
-
-                echo "Project   : ${PROJECT_NAME}"
-                echo "Build     : ${BUILD_NUMBER}"
-                echo "Workspace : ${WORKSPACE}"
-                echo "Node      : ${NODE_NAME}"
-
-            }
-
-        }
-
-        stage('Checkout Source') {
-
-            steps {
-
+                echo "Checking out source code..."
                 checkout scm
-
             }
-
         }
 
-        stage('Verify Environment') {
-
+        stage('Validate Environment') {
             steps {
+                echo "Validating PHP and Composer..."
 
-                bat 'git --version'
-
-                bat 'php -v'
-
-                bat 'composer --version'
-
+                bat '''
+                php -v
+                composer -V
+                '''
             }
-
         }
 
         stage('Composer Install') {
-
             steps {
+                echo "Installing dependencies (locked)..."
 
-                bat 'composer install --no-dev --prefer-dist --optimize-autoloader'
-
+                bat '''
+                composer install --no-interaction --prefer-dist
+                '''
             }
-
         }
 
         stage('PHP Lint') {
-
             steps {
+                echo "Running PHP syntax check..."
 
-                bat 'scripts\\php-lint.bat'
-
+                bat '''
+                for /R %%f in (*.php) do php -l "%%f"
+                '''
             }
-
         }
 
-        stage('Backup') {
-
+        stage('Build Artifact') {
             steps {
+                echo "Creating build artifact..."
 
-                bat 'scripts\\backup.bat'
+                bat '''
+                if exist build\\artifact rmdir /S /Q build\\artifact
+                mkdir build\\artifact
 
+                xcopy /E /I /Y . build\\artifact ^
+                /EXCLUDE:config\\exclude.txt
+                '''
             }
-
         }
 
+        stage('Backup Current Deployment') {
+            steps {
+                echo "Backing up current deployment..."
+
+                bat '''
+                if exist %BACKUP_PATH%\\current (
+                    rmdir /S /Q %BACKUP_PATH%\\current
+                )
+
+                xcopy /E /I /Y %DEPLOY_PATH% %BACKUP_PATH%\\current
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "Deploying artifact to production path..."
+
+                bat '''
+                rmdir /S /Q %DEPLOY_PATH%
+                xcopy /E /I /Y build\\artifact %DEPLOY_PATH%
+                '''
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                echo "Running health check..."
+
+                bat '''
+                curl http://localhost/erp-stagging-new/index.php
+                '''
+            }
+        }
     }
 
     post {
 
         success {
-
-            echo 'BUILD SUCCESSFUL'
-
+            echo "Deployment SUCCESS ✔"
         }
 
         failure {
+            echo "Deployment FAILED ❌ - rollback recommended"
 
-            echo 'BUILD FAILED'
-
+            bat '''
+            if exist %BACKUP_PATH%\\current (
+                rmdir /S /Q %DEPLOY_PATH%
+                xcopy /E /I /Y %BACKUP_PATH%\\current %DEPLOY_PATH%
+            )
+            '''
         }
 
         always {
+            echo "Cleaning workspace..."
 
             cleanWs()
-
         }
-
     }
-
 }
