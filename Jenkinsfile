@@ -6,8 +6,8 @@ pipeline {
         DEPLOY_PATH = "D:\\Xampp-org\\htdocs\\erp-stagging-new"
         BACKUP_PATH = "D:\\Xampp-org\\htdocs\\backup"
         BUILD_PATH = "build\\artifact"
-        PHP_PATH = "php"
-        COMPOSER_PATH = "composer"
+        PHP_HOME = "D:\\Software\\Xampp-Dont Delete\\php"
+        COMPOSER_PATH = "C:\\composer\\composer.phar"
     }
 
     stages {
@@ -23,10 +23,10 @@ pipeline {
             steps {
                 echo "Validating PHP and Composer..."
 
-                bat '''
-                php -v
-                composer -V
-                '''
+                bat """
+                %PHP_HOME%\\php.exe -v
+                %PHP_HOME%\\php.exe -m
+                """
             }
         }
 
@@ -34,9 +34,9 @@ pipeline {
             steps {
                 echo "Installing dependencies (locked)..."
 
-                bat '''
-                composer install --no-interaction --prefer-dist
-                '''
+                bat """
+                %PHP_HOME%\\php.exe %COMPOSER_PATH% install --no-interaction --prefer-dist
+                """
             }
         }
 
@@ -44,9 +44,11 @@ pipeline {
             steps {
                 echo "Running PHP syntax check..."
 
-                bat '''
-                for /R %%f in (*.php) do php -l "%%f"
-                '''
+                bat """
+                for /R %%f in (*.php) do (
+                    %PHP_HOME%\\php.exe -l "%%f"
+                )
+                """
             }
         }
 
@@ -54,13 +56,13 @@ pipeline {
             steps {
                 echo "Creating build artifact..."
 
-                bat '''
+                bat """
                 if exist build\\artifact rmdir /S /Q build\\artifact
                 mkdir build\\artifact
 
                 xcopy /E /I /Y . build\\artifact ^
                 /EXCLUDE:config\\exclude.txt
-                '''
+                """
             }
         }
 
@@ -68,13 +70,13 @@ pipeline {
             steps {
                 echo "Backing up current deployment..."
 
-                bat '''
+                bat """
                 if exist %BACKUP_PATH%\\current (
                     rmdir /S /Q %BACKUP_PATH%\\current
                 )
 
                 xcopy /E /I /Y %DEPLOY_PATH% %BACKUP_PATH%\\current
-                '''
+                """
             }
         }
 
@@ -82,10 +84,13 @@ pipeline {
             steps {
                 echo "Deploying artifact to production path..."
 
-                bat '''
-                rmdir /S /Q %DEPLOY_PATH%
+                bat """
+                if exist %DEPLOY_PATH% (
+                    rmdir /S /Q %DEPLOY_PATH%
+                )
+
                 xcopy /E /I /Y build\\artifact %DEPLOY_PATH%
-                '''
+                """
             }
         }
 
@@ -93,9 +98,9 @@ pipeline {
             steps {
                 echo "Running health check..."
 
-                bat '''
-                curl http://localhost/erp-stagging-new/index.php
-                '''
+                bat """
+                curl -I http://localhost/erp-stagging-new/index.php
+                """
             }
         }
     }
@@ -107,19 +112,20 @@ pipeline {
         }
 
         failure {
-            echo "Deployment FAILED ❌ - rollback recommended"
+            echo "Deployment FAILED ❌ - rolling back..."
 
-            bat '''
+            bat """
             if exist %BACKUP_PATH%\\current (
-                rmdir /S /Q %DEPLOY_PATH%
+                if exist %DEPLOY_PATH% (
+                    rmdir /S /Q %DEPLOY_PATH%
+                )
                 xcopy /E /I /Y %BACKUP_PATH%\\current %DEPLOY_PATH%
             )
-            '''
+            """
         }
 
         always {
             echo "Cleaning workspace..."
-
             cleanWs()
         }
     }
