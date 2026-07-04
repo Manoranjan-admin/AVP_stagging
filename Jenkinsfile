@@ -3,129 +3,168 @@ pipeline {
 
     environment {
         PROJECT_NAME = "ERP-STAGGING-NEW"
-
-        DEPLOY_PATH = "D:\\Xampp-org\\htdocs\\erp-stagging-new"
-        BACKUP_PATH = "D:\\Xampp-org\\htdocs\\backup"
-
-        BUILD_PATH = "build\\artifact"
-
-        // IMPORTANT: PHP path (quoted usage required in bat)
-        PHP_PATH = "D:\\Software\\Xampp-Dont Delete\\php\\php.exe"
-
-        // Composer path
-        COMPOSER_PATH = "C:\\composer\\composer.phar"
+        BASE_DIR = "D:\\Xampp-org\\htdocs\\erp-stagging-new"
+        RELEASE_DIR = "D:\\Xampp-org\\htdocs\\erp-stagging-new\\releases"
+        BACKUP_DIR = "D:\\Xampp-org\\htdocs\\backup"
+        PHP = "D:\\Software\\Xampp-Dont Delete\\php\\php.exe"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                echo "Checking out source code..."
+                echo "Checking out source..."
                 checkout scm
             }
         }
 
-        stage('Validate Environment') {
+        stage('Environment Validation') {
             steps {
-                echo "Validating PHP and Composer..."
-
                 bat """
-                \"%PHP_PATH%\" -v
-                \"%PHP_PATH%\" -m
-                """
-            }
-        }
+                echo Checking PHP...
+                %PHP% -v
 
-        stage('Composer Install') {
-            steps {
-                echo "Installing dependencies..."
+                echo Checking Composer...
+                composer -V
 
-                bat """
-                \"%PHP_PATH%\" \"%COMPOSER_PATH%\" install --no-interaction --prefer-dist
+                echo Checking Git...
+                git --version
                 """
             }
         }
 
         stage('PHP Lint') {
             steps {
-                echo "Running PHP syntax check..."
-
                 bat """
+                echo Running PHP lint...
                 for /R %%f in (*.php) do (
-                    \"%PHP_PATH%\" -l \"%%f\"
+                    %PHP% -l "%%f"
+                    if errorlevel 1 exit /b 1
                 )
+                """
+            }
+        }
+
+        stage('Composer Install') {
+            steps {
+                bat """
+                echo Installing dependencies...
+                composer install --no-interaction --prefer-dist --no-progress
+                if errorlevel 1 exit /b 1
                 """
             }
         }
 
         stage('Build Artifact') {
             steps {
-                echo "Creating build artifact..."
-
                 bat """
+                echo Creating build artifact...
+
                 if exist build\\artifact rmdir /S /Q build\\artifact
                 mkdir build\\artifact
 
-                xcopy /E /I /Y . build\\artifact ^
-                /EXCLUDE:config\\exclude.txt
+                robocopy . build\\artifact /E ^
+                 /XD vendor .git logs build releases shared ^
+                 /XF config\\exclude.txt Jenkinsfile ^
+                 /R:2 /W:2 /NFL /NDL /NP
+
+                set RC=%ERRORLEVEL%
+
+                if %RC% GEQ 8 (
+                    echo BUILD FAILED with code %RC%
+                    exit /b 1
+                )
+
+                echo BUILD SUCCESS
                 """
             }
         }
 
-        stage('Backup Current Deployment') {
+        stage('Create Release Version') {
             steps {
-                echo "Backing up current deployment..."
-
                 bat """
-                if exist \"%BACKUP_PATH%\\current\" (
-                    rmdir /S /Q \"%BACKUP_PATH%\\current\"
+                for /f "tokens=1-3 delims=/ " %%a in ("%date%") do (
+                    set d=%%c.%%b.%%a
                 )
 
-                xcopy /E /I /Y \"%DEPLOY_PATH%\" \"%BACKUP_PATH%\\current\"
+                for /f "tokens=1-2 delims=: " %%a in ("%time%") do (
+                    set t=%%a%%b
+                )
+
+                set RELEASE_ID=%date%_%time%
+                set RELEASE_ID=%RELEASE_ID: =0%
+                set RELEASE_ID=%RELEASE_ID::=%
+                set RELEASE_ID=%RELEASE_ID:/=.%
+
+
+                echo %RELEASE_ID% > build\\artifact\\VERSION.txt
+                echo RELEASE=%RELEASE_ID% > build\\artifact\\release.info
+
+                echo Created release: %RELEASE_ID%
+                """
+            }
+        }
+
+        stage('Backup Current Release') {
+            steps {
+                bat """
+                echo Backing up current deployment...
+
+                if exist "%BASE_DIR%\\current" (
+                    if exist "%BACKUP_DIR%\\current" rmdir /S /Q "%BACKUP_DIR%\\current"
+                    robocopy "%BASE_DIR%\\current" "%BACKUP_DIR%\\current" /E /R:2 /W:2
+                )
                 """
             }
         }
 
         stage('Deploy') {
             steps {
-                echo "Deploying artifact..."
-
                 bat """
-                if exist \"%DEPLOY_PATH%\" (
-                    rmdir /S /Q \"%DEPLOY_PATH%\"
-                )
+                echo Deploying new release...
 
-                xcopy /E /I /Y build\\artifact \"%DEPLOY_PATH%\"
+                set RELEASE_DIR=%BASE_DIR%\\releases
+
+                for /f %%i in ('dir /b /ad /o-n "%RELEASE_DIR%"') do set LATEST=%%i
+
+                if exist "%BASE_DIR%\\current" rmdir "%BASE_DIR%\\current"
+
+                mklink /D "%BASE_DIR%\\current" "%RELEASE_DIR%\\%LATEST%"
+
+                echo Deployment completed: %LATEST%
                 """
             }
         }
 
         stage('Health Check') {
             steps {
-                echo "Running health check..."
-
                 bat """
-                curl -I http://localhost/erp-stagging-new/index.php
+                echo Running health check...
+
+                if not exist "%BASE_DIR%\\current\\index.php" (
+                    echo HEALTH CHECK FAILED
+                    exit /b 1
+                )
+
+                echo HEALTH CHECK PASSED
                 """
             }
         }
+
     }
 
     post {
-
         success {
             echo "Deployment SUCCESS ✔"
         }
 
         failure {
-            echo "Deployment FAILED ❌ - rolling back..."
+            echo "Deployment FAILED ❌ - initiating rollback..."
 
             bat """
-            if exist \"%BACKUP_PATH%\\current\" (
-                if exist \"%DEPLOY_PATH%\" (
-                    rmdir /S /Q \"%DEPLOY_PATH%\"
-                )
-                xcopy /E /I /Y \"%BACKUP_PATH%\\current\" \"%DEPLOY_PATH%\"
+            if exist "%BACKUP_DIR%\\current" (
+                if exist "%BASE_DIR%" rmdir /S /Q "%BASE_DIR%"
+                robocopy "%BACKUP_DIR%\\current" "%BASE_DIR%" /E /R:2 /W:2
             )
             """
         }
