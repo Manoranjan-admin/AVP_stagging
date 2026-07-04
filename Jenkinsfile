@@ -3,10 +3,16 @@ pipeline {
 
     environment {
         PROJECT_NAME = "ERP-STAGGING-NEW"
+
         DEPLOY_PATH = "D:\\Xampp-org\\htdocs\\erp-stagging-new"
         BACKUP_PATH = "D:\\Xampp-org\\htdocs\\backup"
+
         BUILD_PATH = "build\\artifact"
-        PHP_HOME = "D:\\Software\\Xampp-Dont Delete\\php"
+
+        // IMPORTANT: PHP path (quoted usage required in bat)
+        PHP_PATH = "D:\\Software\\Xampp-Dont Delete\\php\\php.exe"
+
+        // Composer path
         COMPOSER_PATH = "C:\\composer\\composer.phar"
     }
 
@@ -24,18 +30,18 @@ pipeline {
                 echo "Validating PHP and Composer..."
 
                 bat """
-                %PHP_HOME%\\php.exe -v
-                %PHP_HOME%\\php.exe -m
+                \"%PHP_PATH%\" -v
+                \"%PHP_PATH%\" -m
                 """
             }
         }
 
         stage('Composer Install') {
             steps {
-                echo "Installing dependencies (locked)..."
+                echo "Installing dependencies..."
 
                 bat """
-                %PHP_HOME%\\php.exe %COMPOSER_PATH% install --no-interaction --prefer-dist
+                \"%PHP_PATH%\" \"%COMPOSER_PATH%\" install --no-interaction --prefer-dist
                 """
             }
         }
@@ -46,7 +52,7 @@ pipeline {
 
                 bat """
                 for /R %%f in (*.php) do (
-                    %PHP_HOME%\\php.exe -l "%%f"
+                    \"%PHP_PATH%\" -l \"%%f\"
                 )
                 """
             }
@@ -71,25 +77,25 @@ pipeline {
                 echo "Backing up current deployment..."
 
                 bat """
-                if exist %BACKUP_PATH%\\current (
-                    rmdir /S /Q %BACKUP_PATH%\\current
+                if exist \"%BACKUP_PATH%\\current\" (
+                    rmdir /S /Q \"%BACKUP_PATH%\\current\"
                 )
 
-                xcopy /E /I /Y %DEPLOY_PATH% %BACKUP_PATH%\\current
+                xcopy /E /I /Y \"%DEPLOY_PATH%\" \"%BACKUP_PATH%\\current\"
                 """
             }
         }
 
         stage('Deploy') {
             steps {
-                echo "Deploying artifact to production path..."
+                echo "Deploying artifact..."
 
                 bat """
-                if exist %DEPLOY_PATH% (
-                    rmdir /S /Q %DEPLOY_PATH%
+                if exist \"%DEPLOY_PATH%\" (
+                    rmdir /S /Q \"%DEPLOY_PATH%\"
                 )
 
-                xcopy /E /I /Y build\\artifact %DEPLOY_PATH%
+                xcopy /E /I /Y build\\artifact \"%DEPLOY_PATH%\"
                 """
             }
         }
@@ -115,11 +121,11 @@ pipeline {
             echo "Deployment FAILED ❌ - rolling back..."
 
             bat """
-            if exist %BACKUP_PATH%\\current (
-                if exist %DEPLOY_PATH% (
-                    rmdir /S /Q %DEPLOY_PATH%
+            if exist \"%BACKUP_PATH%\\current\" (
+                if exist \"%DEPLOY_PATH%\" (
+                    rmdir /S /Q \"%DEPLOY_PATH%\"
                 )
-                xcopy /E /I /Y %BACKUP_PATH%\\current %DEPLOY_PATH%
+                xcopy /E /I /Y \"%BACKUP_PATH%\\current\" \"%DEPLOY_PATH%\"
             )
             """
         }
