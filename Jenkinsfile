@@ -92,6 +92,12 @@ pipeline {
             }
         }
 
+        stage('Prepare Deployment') {
+            steps {
+                bat 'scripts\\prepare-deployment.bat'
+            }
+        }
+
         stage('Backup') {
             steps {
                 bat 'scripts\\backup.bat'
