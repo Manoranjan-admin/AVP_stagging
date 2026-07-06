@@ -10,7 +10,7 @@ REM =====================================================
 REM Configuration
 REM =====================================================
 
-set PROJECT_NAME=ERP-STAGGING-NEW
+set PROJECT_NAME=AVP-stagging
 
 if "%BUILD_NUMBER%"=="" (
     set BUILD_NUMBER=LOCAL

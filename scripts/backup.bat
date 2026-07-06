@@ -9,9 +9,9 @@ echo.
 :: ------------------------------
 :: Configuration
 :: ------------------------------
-set PROJECT_NAME=erp-stagging-new
-set PROJECT_PATH=D:\Xampp-org\htdocs\erp-stagging-new
-set BACKUP_ROOT=D:\Xampp-org\htdocs\backup
+set PROJECT_NAME=AVP-stagging
+set PROJECT_PATH=D:\Xampp-Dont Delete\htdocs\AVP-stagging
+set BACKUP_ROOT=D:\Xampp-Dont Delete\htdocs\backup
 
 :: ------------------------------
 :: Generate Timestamp

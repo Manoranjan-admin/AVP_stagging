@@ -6,7 +6,7 @@ echo VERIFY ARTIFACT STAGE
 echo ==========================================
 
 set "ARTIFACT_DIR=build\artifacts"
-set "ZIP_FILE=%ARTIFACT_DIR%\ERP-STAGGING-NEW_%BUILD_NUMBER%.zip"
+set "ZIP_FILE=%ARTIFACT_DIR%\AVP-stagging_%BUILD_NUMBER%.zip"
 
 echo.
 echo Verifying build artifacts...

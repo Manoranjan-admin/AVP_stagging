@@ -5,7 +5,7 @@ echo ==========================================
 echo VERIFY DEPLOYMENT
 echo ==========================================
 
-set "DEPLOY_PATH=D:\Xampp-org\htdocs\erp-stagging-new"
+set "DEPLOY_PATH=D:\Xampp-Dont Delete\htdocs\AVP-stagging"
 
 echo.
 

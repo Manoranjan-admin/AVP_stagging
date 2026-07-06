@@ -14,8 +14,8 @@ REM ------------------------------------------
 REM Paths
 REM ------------------------------------------
 
-set "TEMP_DEPLOY=D:\Xampp-org\htdocs\deployment-temp"
-set "DEPLOY_PATH=D:\Xampp-org\htdocs\erp-stagging-new"
+set "TEMP_DEPLOY=D:\Xampp-Dont Delete\htdocs\deployment-temp"
+set "DEPLOY_PATH=D:\Xampp-Dont Delete\htdocs\AVP-stagging"
 set "LOG_DIR=logs"
 
 REM ------------------------------------------

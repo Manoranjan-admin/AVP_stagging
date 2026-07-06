@@ -6,7 +6,7 @@ echo ==========================================
 echo ENABLE MAINTENANCE MODE
 echo ==========================================
 
-set "DEPLOY_PATH=D:\Xampp-org\htdocs\erp-stagging-new"
+set "DEPLOY_PATH=D:\Xampp-Dont Delete\htdocs\AVP-stagging"
 
 if not exist "%DEPLOY_PATH%" (
     echo [ERROR] Deployment path not found.

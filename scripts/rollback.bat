@@ -9,9 +9,9 @@ echo.
 :: ------------------------------------------------
 :: Configuration
 :: ------------------------------------------------
-set PROJECT_PATH=D:\Xampp-org\htdocs\erp-stagging-new
-set BACKUP_ROOT=D:\Xampp-org\htdocs\backup
-set LOG_DIR=D:\Xampp-org\htdocs\logs
+set PROJECT_PATH=D:\Xampp-Dont Delete\htdocs\AVP-stagging
+set BACKUP_ROOT=D:\Xampp-Dont Delete\htdocs\backup
+set LOG_DIR=D:\Xampp-Dont Delete\htdocs\logs
 set LOG_FILE=%LOG_DIR%\rollback.log
 
 :: ------------------------------------------------
