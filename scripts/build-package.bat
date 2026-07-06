@@ -123,7 +123,8 @@ REM =====================================================
 REM Save Latest Artifact
 REM =====================================================
 
-echo %ARTIFACT_NAME% > "%ARTIFACT_DIR%\latest.txt"
+<nul set /p="%ARTIFACT_NAME%">"%ARTIFACT_DIR%\latest.txt"
+echo.>>"%ARTIFACT_DIR%\latest.txt"  
 
 if not exist "%ARTIFACT_DIR%\latest.txt" (
     echo ERROR: latest.txt was not created.
