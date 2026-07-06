@@ -1,0 +1,150 @@
+<?php
+error_reporting(0);
+include "classes/class_sale_order.php";
+//obj_saleorder = new Sale_order('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '');
+$obj_saleorder = new Sale_order('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '');
+
+$getCustomerList = $obj_saleorder->getCustomerList();
+
+?>
+<style>
+.table-bordered thead td, .table-bordered thead th, tr {
+    text-align: left;
+}
+</style>
+<div class="content-wrapper" style="min-height: 1342.88px;">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>List Paid Outstanding Report</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="index.php">Home</a></li>
+                        <li class="breadcrumb-item active">List Customer Report</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- left column -->
+                <div class="col-md-12">
+                    <!-- jquery validation -->
+                    <div class="card card-primary">
+                        <!-- <div class="card-header">
+                <h3 class="card-title">Quick Example <small>jQuery Validation</small></h3>
+              </div> -->
+                        <!-- /.card-header -->
+                        <!-- form start -->
+                        <div class="card-body">
+                            <!-- DATA TABLE-->
+
+                            <nav>
+                                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                    <!--  <a class="nav-item nav-link active" id="nav-waiting-tab" data-toggle="tab" href="#nav-waiting" role="tab" aria-controls="waiting-approved" aria-selected="true">WAITING FOR APPROVAL</a>
+                     <a class="nav-item nav-link" id="nav-approved-tab" data-toggle="tab" href="#nav-approved" role="tab" aria-controls="nav-approved" aria-selected="false">APPROVED</a>
+                        <a class="nav-item nav-link" id="nav-cancelled-tab" data-toggle="tab" href="#nav-cancelled" role="tab" aria-controls="nav-cancelled" aria-selected="false">CANCELLED</a>-->
+                                </div>
+                            </nav>
+                            <div class="tab-content" id="nav-tabContent">
+                                <div class="tab-pane fade show active" id="nav-waiting" role="tabpanel"
+                                    aria-labelledby="nav-waiting-tab">
+                                    <form method="post" id="paidstatusForm" action="print_pdf/print_report_COR.php" >
+                                    <table class="table">
+                                        <thead>
+                                            <tr class="filters">
+                                              
+                                               <!-- <th class="col-md-4" style="border: unset;">Customer:
+                                                    <select id="customer-filter" name="customer-filter" class="form-control">
+                                                        <option value="">All</option>
+                                                         <?php //if(!empty($getCustomerList) ){
+                                                            //while ($cus_rows = mysqli_fetch_array($getCustomerList)) {
+                                                                
+                                                              //echo "<option value='".$cus_rows['pk_cus_id']."'>".$cus_rows['cus_name']."</option>";  
+                                                            // }
+                                                            // }
+                                                            ?>
+                                                       <!-- <option value="1">Paid</option>
+                                                        <option value="2">Not Paid</option>
+
+                                                        
+                                                    </select>
+                                                </th>-->
+                                                <th class="col-md-4" style="border: unset;">
+                                                </th>
+                                                <th class="col-md-4" style="border: unset;">
+                                                </th>
+
+                                            </tr>
+                                            <tr style="text-align: unset;"><th style="border: unset;"><button type="submit"  class="btn btn-primary" name="paidstatusSubmit" id="paidstatusSubmit" >Export</button></th></tr>
+                                        </thead>
+                                    </table>
+                                    </form>
+                                    <table id="customerpaidreportTable"
+                                        class="table table-bordered table-striped dataTable dtr-inline">
+                                        <thead>
+                                            <tr>
+                                                <!-- <th>S.No</th> -->
+                                                <th>Customer</th>
+                                                <th>Amount</th>
+                                                <th>Advance</th>
+												<th>Receipts</th>
+												<th>Pending</th> 
+												<th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!--/.col (left) -->
+                <!-- right column -->
+                <div class="col-md-6">
+
+                </div>
+                <!--/.col (right) -->
+            </div>
+            <!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+</div>
+<script
+    src="assets/dist/js/outstandreport_serverdatatable_ajax.js?version=<?php echo md5_file('js/outstandreport_serverdatatable_ajax.js'); ?>">
+</script>
+
+
+
+<script>
+   
+$(".nav-link").removeClass("active");
+$(".nav-item").removeClass("menu-open");
+
+$(".report").addClass("menu-open");
+$(".outstandreport .nav-link").addClass("active");
+
+
+</script>
+<script type="text/javascript">
+
+</script>
+<style type="text/css">
+.dataTables_wrapper {
+    margin-top: 14px;
+}
+</style>

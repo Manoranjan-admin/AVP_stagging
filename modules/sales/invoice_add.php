@@ -1,0 +1,964 @@
+<?php
+//error_reporting(E_ALL);
+include("classes/class_category.php");
+include("classes/class_uom.php");
+$obj_cat = new Category('','','','','','');
+$obj_uom = new Uom('','','','','');
+$getuom = $obj_uom->getalluom();
+$uom_data=array();
+while($uom_rows=mysqli_fetch_array($getuom)) {
+  $uom_data[]=$uom_rows;
+}
+
+$getcate = $obj_cat->getallcategory();
+$cat_data=array();
+while($cat_rows=mysqli_fetch_array($getcate)) {
+  $cat_data[]=$cat_rows;
+}
+
+include("classes/class_customer.php");
+$obj_cus = new Customer('','','','','','','','','','','','','','','','','','','','','','',$GLOBALS["___mysqli_ston"]);
+$getcustomer = $obj_cus->getAllCustomer();
+$cus_data=array();
+while($cus_rows=mysqli_fetch_array($getcustomer)) {
+  $cus_data[]=$cus_rows;
+}
+
+include("classes/class_product.php");
+$obj_product = new Product('','','','','','','','','','','');
+$getproduct = $obj_product->getAllProducts();
+$prod_data=array();
+while($prod_rows=mysqli_fetch_array($getproduct)) {
+  $prod_data[]=$prod_rows;
+}
+?>
+<div class="content-wrapper" style="min-height: 1342.88px;">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Sales Invoice</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="index.php">Home</a></li>
+              <li class="breadcrumb-item active">Sales Invoice</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <!-- left column -->
+          <div class="col-md-12">
+            <!-- jquery validation -->
+            <div class="card card-primary">
+              <!-- <div class="card-header">
+                <h3 class="card-title">Quick Example <small>jQuery Validation</small></h3>
+              </div> -->
+              <!-- /.card-header -->
+              <!-- form start -->
+              <form class="form-horizontal theme-form" id="form_sale_order_add" autocomplete="off" novalidate="novalidate">
+                <div class="card-body">
+                  <div id="stepwizard">
+                      <div class="one-half-column">
+                        <div class="form-group">
+                            <label for="" class="control-label">Invoice No </label>
+                            <div class="control-field">
+                              <input type="text" class="form-control txt_sono" name="txt_sono" id="txt_sono" placeholder="Auto" title="SO NO" readonly="">
+                              <span class="error" id="txt_sono_error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="" class="control-label">Date <span class="color">*</span></label>
+                            <div class="control-field">
+                              <input type="text" class="form-control txt_pi_date hasDatepicker valid" name="txt_pi_date" id="txt_pi_date" placeholder="DD/MM/YYYY" required="" aria-required="true" aria-invalid="false">
+                              <span class="error" id="txt_pi_date_error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="" class="control-label">Customer <span class="color">*</span></label>
+                            <div class="control-field">
+                              <div>
+                                  <select class="form-control txt_customer_name chosen_required" name="txt_customer_name" id="txt_customer_name" title="Customer" required="" aria-required="true">
+                                  <option value="">Select Customer</option>
+                                  <?php
+                                    for ($i=0; $i < count($cus_data); $i++) { 
+                                      ?>
+                                      <option value="<?php echo $cus_data[$i]['pk_cus_id']; ?>"><?php echo $cus_data[$i]['cus_name']; ?></option>
+                                      <?php
+                                    }
+                                  ?>
+                                </select>
+                              </div>
+                              <span class="error" id="txt_customer_name-error"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="" class="control-label">Sales Order No <span class="color"> *</span></label>
+                          <div class="control-field">
+                            <select class="form-control txt_sc_no chosen_required" id="txt_sc_no" name="txt_sc_no" multiple>  </select> 
+                          </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="" class="control-label">Shipment (From / To) </label>
+                            <div class="control-field" style="display: flex;">
+                              <input type="text" class="form-control txt_shipment_from" name="txt_shipment_from" id="txt_shipment_from" placeholder="Shipment From" title="Shipment From">
+                              <input type="text" class="form-control txt_shipment_to" name="txt_shipment_to" id="txt_shipment_to" placeholder="Shipment To" title="Shipment To">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="" class="control-label">Status </label>
+                            <div class="control-field">
+                              <input id="txt_approved" class="magic-checkbox " type="checkbox" name="txt_approved" value="1">
+                              <label for="txt_approved" title="Approved">APPROVED</label>
+                              <input id="txt_cancelled" class="magic-checkbox " type="checkbox" name="txt_approved" value="2">
+                              <label for="txt_cancelled" title="cancelled">CANCELLED</label>
+                            </div>
+                        </div>
+
+
+
+                      </div>
+                      <input type="hidden" name="mode" id="mode" value="AddProduct">
+                    
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <div class="tab-content">
+                      <div class="text-right">
+                    
+                        <span class="btn btn-xs btn-mint mar-btm" id="additems" onclick="addrow();" style="display: none;">Add row 
+                      </span></div>
+                      <div class="table-div table-responsive">
+                                <table class="table-bordered table thead itemTable">
+                          <thead>
+                            <tr>
+                              <th width="5" valign="middle">#</th>
+                              <th width="120">Item Name<span class="color"> *</span></th>
+                              <th width="120">UOM <span class="color"> *</span></th>
+                              <th width="120">Quantity <span class="color">*</span></th>
+                              <th width="120">Price(₹) <span class="color">*</span></th>
+                              <th width="120">Taxable Total(₹) <span class="color"> *</span></th>
+                              <th width="120">CGST <span class="color"> *</span></th>
+                              <th width="120">SGST <span class="color"> *</span></th>
+                              <th width="120">IGST <span class="color"> *</span></th>
+                              <th width="120">Total (₹) <span class="color"> *</span></th>
+                            </tr>                   
+                          </thead>  
+                          <tbody class="itemclone custom_table_width"><tr><td colspan="10" class="text-center error"> No records available in the table !</td></tr></tbody>    
+                        </table>
+                     </div>
+                     <div class="colum_split">
+                        <div class="one-half-column">
+                      </div>
+                      <div class="one-half-column pull-right custom_table_widths">
+                        <div class="table-div table-responsive">
+                          <table class="table-bordered table thead amountdetails" width="100%" cellspacing="0" cellpadding="0">
+                            <thead>
+                            <tr>
+                                <td class="text-right">
+                                  <label style="margin-top: 6px;" class="agents"><strong>Items Total(₹)</strong></label>
+                                </td>
+                                <td>
+                                  <input type="text" name="txt_item_total" class="form-control txt_item_total pull-right w-21 text-right numberss" id="txt_item_total" readonly="">
+                                </td>
+                                <!-- <td></td> -->
+                              </tr>
+                              
+                             <!--  <tr>
+                                <td>  <input type="radio" name="txt_intstate" class="form-control txt_intstate pull-right w-21 text-right numberss" id="txt_interstate" style="width: 17px;" checked="" value="1"><label for="txt_interstate" style="padding: 11px;">Intra State</label><br>
+                                <input type="radio" name="txt_intstate" class="form-control txt_intstate pull-right w-21 text-right numberss" id="txt_intrastate" style="width: 17px;" value="2"><label for="txt_intrastate" style="padding: 11px;">Inter State</label>
+                                </td>
+                                <td></td>
+                                <td></td>
+                              </tr> -->
+                            
+                            </thead>
+                            <tbody class="totalamounts">
+                            <tr>
+                                <td class="text-right">
+                                  <div class="gstcol mt-10">
+                                    <span class="totalamounts_sec interst">
+                                      <label class="">CGST Total</label>
+                                         <!--   <div class="input-group btn-type w-49">
+                                          <input type="text" name="cgst_final" id="cgst_final" onkeyup="cgst_final_function()" class="form-control cgst pull-left cgst_1" placeholder="%" max="100">
+                                          <span class="input-group-addon"><i class="fa fa-percent"></i></span>
+                                        </div>
+                                        <select class="form-control txt_cal_type_cgst pull-left numberss pricefieldchanges extraprices" name="txt_cal_type_cgst_final" id="txt_cal_type_cgst_final">
+                                        <option value="1" selected="">+</option>
+                                         </select>-->
+                                    </span>
+                                    <span class="totalamounts_sec mt-10 interst">
+                                        <label class="">SGST Total</label>
+                                         <!--   <div class="input-group btn-type w-49">
+                                          <input type="text" name="sgst_final" id="sgst_final" onkeyup="sgst_final_function()" class="form-control sgst pull-left sgst_1" placeholder="%" max="100">
+                                          <span class="input-group-addon"><i class="fa fa-percent"></i></span>
+                                        </div>
+                                        <select class="form-control txt_cal_type_sgst pull-left numberss pricefieldchanges extraprices" name="txt_cal_type_sgst_final" id="txt_cal_type_sgst_final">
+                                        <option value="1" selected="">+</option>
+                                        </select>-->
+                                    </span>
+                                    <span class="totalamounts_sec mt-10 intrast">
+                                        <label class="">IGST Total</label>
+                                        <!--    <div class="input-group btn-type w-49">
+                                      <input type="text" name="igst_final" id="igst_final" onkeyup="igst_final_function()" class="form-control igst pull-left igst_1" placeholder="%" max="100">
+                                          <span class="input-group-addon"><i class="fa fa-percent"></i></span>
+                                        </div>
+                                        <select class="form-control txt_cal_type_igst pull-left numberss pricefieldchanges extraprices" name="txt_cal_type_igst_final" id="txt_cal_type_igst_final">
+                                        <option value="1" selected="">+</option>
+                                     
+                                        </select>-->
+                                    </span>
+                                  </div>
+                                <label style="margin-top: 6px;" class="agents"><strong>GST Total(₹)</strong></label>
+                              </td>
+                                <td>
+                                  <div class="gstcol mt-10">
+                                      <span class="col-md-12 p-0 interst">
+                                        <input type="text" name="txt_cgst_amt_final" class="form-control  totalcalc extraprices pull-right text-right numbersOnly" id="txt_cgst_amt_final" readonly="">
+                                      </span>
+                                      <span class="col-md-12 mt-10 p-0 interst">
+                                        <input type="text" name="txt_sgst_amt_final" class="form-control totalcalc extraprices  pull-right text-right numbersOnly" id="txt_sgst_amt_final" readonly="">
+                                      </span>
+                                      <span class="col-md-12  p-0 intrast">
+                                        <input type="text" name="txt_igst_amt_final" class="form-control totalcalc extraprices  pull-right text-right numbersOnly" id="txt_igst_amt_final" readonly="">
+                                      </span>
+                                  </div>
+                                  <input style="margin-top: 6px;" type="text" name="txt_gst_total" class="form-control txt_gst_total pull-right w-21 text-right numberss" id="txt_gst_total" readonly="">
+                                </td>
+                                <!-- <td width="2%">
+                                  <button type="button" class="btn btn-primary btn-plus pull-left addextraitemscomm"><i class="fa fa-plus" aria-hidden="true"></i></button> 
+                                </td> -->
+                              </tr>
+
+                              <tr class="apRow">
+                                  <td class="text-right">
+                                      <span class="totalamounts_sec mt-10 intrast" style="display: flex;align-items: center;justify-content: flex-end;">
+                                          <label class="" style="    padding-right: 15px;">DISCOUNT</label>
+                                          <div class="input-group btn-type w-49" style="margin-right: 20px !important;width: 65% !important;">
+                                            <input type="text" name="discount_final" id="discount_final" onkeyup="cal()" class="form-control igst pull-left discount_final_1" placeholder="%" max="100">
+                                            <span class="input-group-addon"><i class="fa fa-percent"></i></span>
+                                          </div>
+                                          <select class="form-control txt_cal_type_igst pull-left numberss pricefieldchanges extraprices" name="txt_cal_type_igst_final" id="txt_cal_type_igst_final">
+                                          <option value="1" selected="">-</option>
+                                          <!-- <option value="2">-</option> -->
+                                          </select>
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <input type="text" name="discount_final_amt" class="form-control txt_field_value_comm totalcalc extrapricescomm pull-right text-right numberss" id="discount_final_amt" readonly="readonly" min="0" max="' + itemTot + '">
+                                    </td>
+                                </tr>
+                              <tr>
+                                <td align="right">
+                                  <label for="" class="control-label text-right gtotal"> <strong>Grand Total(₹)</strong></label>
+                                </td>
+                                <td class="text-right">
+                                  <input type="text" name="txt_grand_total" class="form-control txt_grand_total pull-right w-21 text-right" id="txt_grand_total" readonly="" value="0.00">
+                                </td>
+                                <!-- <td></td> -->
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>  
+                      </div>
+                     </div>
+                      
+                  </div>  
+                </div>
+                <!-- /.card-body -->
+                <div class="card-footer">
+                  <input type="hidden" name="deleted" value="0" id="deleted" />
+                  <input type="hidden" name="mode" value="addSalesOrder" />
+                  <input type="hidden" name="cus_id" id="cus_id">
+                  <button type="submit" class="btn_save btn btn-primary">Submit</button>
+                </div>
+              </form>
+            </div>
+            <!-- /.card -->
+            </div>
+          <!--/.col (left) -->
+          <!-- right column -->
+          <div class="col-md-6">
+
+          </div>
+          <!--/.col (right) -->
+        </div>
+        <!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section>
+    <!-- /.content -->
+  </div>
+  <script>
+  $('#txt_customer_name').select2();
+  $('#txt_uom').select2();
+  $(".nav-link").removeClass("active");
+  $(".nav-item").removeClass("menu-open");
+    
+  $(".sales").addClass("menu-open");
+  $(".sales_customer .nav-link").addClass("active");
+ 
+  $('.txt_product_name').select2();
+  $('#txt_product_name_1').select2();
+
+  function getProductListing(type) {
+      //alert('test');
+      $.ajax({
+          url: "modules/products/ajax_functions.php",
+          data: { 'mode': 'getProductListing'},
+          type: 'post',
+          dataType: 'json',
+          success: function(response) {
+              if (response[0].length > 0) {
+                  //$('.txt_product_name').chosen('destroy');
+                  $('.txt_product_name_'+type).html('');
+                  $('.txt_product_name_'+type).html('<option selected disabled>Select</option>');
+                  for (var i = 0; i < response[0].length; i++) {
+                      if (response[0][i].pk_product_id == '9999') {
+
+                          $('.txt_product_name_'+type).append('<option value="' + response[0][i].pk_product_id + '" data-types="2">' + response[0][i].product_name + '</option>');
+                      } else {
+
+                          $('.txt_product_name_'+type).append('<option value="' + response[0][i].pk_product_id + '" data-types="1">' + response[0][i].product_name + '</option>');
+                      }
+                  }
+                  //$('.txt_product_name').chosen();
+                  $("#proStatus").val(1);
+              } else {
+                  $('table .itemclone').html('<tr><td colspan="10" class="text-center error"> No records available in the table !</td></tr>');
+                  $("#additems").hide();
+                  $("#proStatus").val(0);
+              }
+          },
+          error: function(response) {
+              console.log(response);
+          }
+      });
+  }
+  function getCustomerSalesConfirmation(cusId){
+    $.ajax({    
+      url:"modules/sales/ajax_functions.php",
+      data:{'id':cusId,'mode':'getCustomerSalesConfirmation'},
+      type:'post',
+      dataType:'json',
+      success:function (response){
+      
+        $('#txt_sc_no').html('');
+        for(var i=0;i<response.length;i++){
+          $('#txt_sc_no').append('<option value="'+response[i].sono+'">'+response[i].prefix+'/'+response[i].prefix_year+'/'+response[i].sales_no+'</option>');
+        }
+      },
+      error:function(response){
+        console.log(response);
+      }
+    }); 
+  } 
+
+  $('#txt_customer_name').on('change', function() {
+    var custId = $('#txt_customer_name').val();
+    if (custId) {
+      $('#cus_id').val(custId);
+    }
+    var count = 0;
+    if ($('#removeitems').length < 1) {
+      $('table.itemTable tbody.itemclone').html('<tr><td><button type="button" name="removeitems" id="removeitems" class="removeitems" title="Delete"><i class="fa fa-trash" aria-hidden="true"></i></button></td><td><select class="form-control txt_product_name txt_product_name_1 chosen_required" name="txt_product_name[]" id="txt_product_name_1" title="Product Name" data-czid="1" data-classids="txt_product_name_1"></select><input type="hidden" name="pro_type[]" id="pro_type" class="pro_type pro_type_1"></td><td><input type="text" class="form-control txt_uom txt_uom_1" name="txt_uom[]" id="txt_uom_1" title="Unit" ></td><td><input onkeyup="cal()"  class="form-control txt_product_qty numbersOnly  txt_product_qty_1" min="0" max="999999" id="txt_product_qty_1" name="txt_product_qty[]" placeholder="Quantity" title="Quantity"></td><td ><input type="text" name="txt_price[]" id="txt_price_1" class="form-control pricefield txt_price txt_price_1 numberss text-right" title="Price"><input type="hidden" class="txt_comm txt_comm_1" name="txt_comm" id="txt_comm" value=""></td><td ><input type="text" name="txt_total[]" id="txt_total_1" class="form-control txt_total_1 numberss txt_total text-right" title="Total" readonly></td><td><input placeholder="%" type="text" name="txt_cgst[]" onkeyup="cgst(1)" id="txt_cgst_1" class="form-control cgstfield txt_cgst class_per txt_cgst_1 text-right" title="CGST"><input type="text" name="txt_cgst_amt[]" onkeyup="cgst(1)" id="txt_cgst_amt_1" readonly class="form-control class_amt cgstfield txt_cgst_amt txt_cgst_amt_1 text-right" title="CGST AMT"></td><td><input type="text" onkeyup="sgst(1)" name="txt_sgst[]" id="txt_sgst_1" class="form-control class_per sgstfield txt_sgst txt_sgst_1 text-right" title="SGST" placeholder="%"><input type="text" onkeyup="sgst(1)" name="txt_sgst_amt[]" id="txt_sgst_amt_1" readonly class="form-control class_amt sgstfield txt_sgst_amt txt_sgst_amt_1 text-right" title="SGST_amt"></td><td><input onkeyup="igst(1)" type="text" name="txt_igst[]" id="txt_igst_1" class="class_per form-control igstfield txt_igst txt_igst_1 text-right" title="IGST" placeholder="%"><input onkeyup="igst(1)" type="text" name="txt_igst_amt[]" id="txt_igst_amt_1" class="class_amt form-control igstfield txt_igst_amt txt_igst_amt_1 text-right" title="IGST AMT" readonly></td><td ><input type="text" name="txt_final_total[]" id="txt_final_total_1" class="form-control txt_final_total_1 numberss txt_final_total text-right" title="Grand Total" readonly></td></tr>');
+    }
+    getProductListing(1);
+    getCustomerSalesConfirmation(custId);
+    $("#additems").show();
+    $(".pricefield").trigger("change");
+  })
+
+  function addrow()
+  {
+      var cusId = $('#txt_customer_name').val();
+      var tcont=$('tbody.itemclone tr').length; 
+      var deleted=$('#deleted').val();
+      zz =parseInt(tcont)+1+parseInt(deleted);
+      $('table .itemclone').append('<tr><td><button type="button" name="removeitems" id="removeitems" class="removeitems" title="Delete"><i class="fa fa-trash" aria-hidden="true"></i></button></td><td><select class="form-control txt_product_name txt_product_name_'+zz+' chosen_required" name="txt_product_name[]" id="txt_product_name_'+zz+'" title="Product Name" data-czid="'+zz+'" data-classids="txt_product_name_'+zz+'" onchange="cal()"></select><input type="hidden" name="pro_type[]" id="pro_type" class="pro_type pro_type_'+zz+'"></td><td><input type="text" class="form-control txt_uom txt_uom_'+zz+'" name="txt_uom[]" id="txt_uom_'+zz+'" title="Unit" ></td><td><input class="form-control txt_product_qty numbersOnly  txt_product_qty_'+zz+'" min="0" max="999999" id="txt_product_qty_'+zz+'" onkeyup="cal()" name="txt_product_qty[]" placeholder="Quantity" title="Quantity"></td><td ><input type="text" name="txt_price[]" id="txt_price_'+zz+'" class="form-control pricefield txt_price txt_price_'+zz+' numberss text-right" title="Price"><input type="hidden" class="txt_comm txt_comm_'+zz+'" name="txt_comm" id="txt_comm" value=""></td><td ><input type="text" name="txt_total[]" id="txt_total_'+zz+'" class="form-control txt_total_'+zz+' numberss txt_total text-right" title="Total" readonly></td><td><input placeholder="%" type="text" name="txt_cgst[]" onkeyup="cgst('+zz+')" id="txt_cgst_'+zz+'" class="form-control cgstfield txt_cgst class_per txt_cgst_'+zz+' text-right" title="CGST"><input type="text" name="txt_cgst_amt[]" onkeyup="cgst('+zz+')" id="txt_cgst_amt_'+zz+'" readonly class="form-control class_amt cgstfield txt_cgst_amt txt_cgst_amt_'+zz+' text-right" title="CGST AMT"></td><td><input type="text" onkeyup="sgst('+zz+')" name="txt_sgst[]" id="txt_sgst_'+zz+'" class="form-control class_per sgstfield txt_sgst txt_sgst_'+zz+' text-right" title="SGST" placeholder="%"><input type="text" onkeyup="sgst('+zz+')" name="txt_sgst_amt[]" id="txt_sgst_amt_'+zz+'" readonly class="form-control class_amt sgstfield txt_sgst_amt txt_sgst_amt_'+zz+' text-right" title="SGST_amt"></td><td><input onkeyup="igst('+zz+')" type="text" name="txt_igst[]" id="txt_igst_'+zz+'" class="class_per form-control igstfield txt_igst txt_igst_'+zz+' text-right" title="IGST" placeholder="%"><input onkeyup="igst('+zz+')" type="text" name="txt_igst_amt[]" id="txt_igst_amt_'+zz+'" class="class_amt form-control igstfield txt_igst_amt txt_igst_amt_'+zz+' text-right" title="IGST AMT" readonly></td><td ><input type="text" name="txt_final_total[]" id="txt_final_total_'+zz+'" class="form-control txt_grand_total_'+zz+' numberss txt_final_total text-right" title="Grand Total" readonly></td></tr>');
+      getProductListing(zz);
+      //validatefunctions();
+      
+      $(".txt_price_"+(zz-1)).attr('readonly',true);
+  }
+
+  var deleted=0;
+
+  $('table').on("click", ".removeitems", function(e) {
+        e.preventDefault();
+      var rowCount = $('.itemTable >tbody >tr').length;
+      if(rowCount>1){
+      $(".txt_price_"+(rowCount-1)).attr('readonly',false);
+      }else{
+      $(".txt_price_"+rowCount).attr('readonly',false);
+      }
+          if ($('.removeitems').length > 1) {
+              var sqpid = $(this).closest('tr').find('td .txt_sqp_id').val();
+              if (sqpid) {
+                  var sqvals = $('.txt_deleted_sqp').val();
+                  if (sqvals != 0) {
+                      var vallss = sqvals + '##' + sqpid;
+                  } else {
+                      var vallss = sqpid;
+                  }
+                  $('.txt_deleted_sqp').val(vallss);
+              }
+              $(this).closest('tr').remove(); 
+              /*GST Calculation*/
+            /*$('#cgst_final').val(0);
+            $('#sgst_final').val(0);
+            $('#cgst_final').val(0);*/
+            var cusId = $('#txt_customer_name').val();
+        
+            var prodid=$('.txt_product_name').val(); 
+            //var prodDetail = productDetail(prodid,cusId); 
+      
+            //if($('#cgst_final').val()==''|| $('#sgst_final').val()=='' || $('#igst_final').val()=='')
+          //  {
+            /*if(prodDetail)
+            {
+              
+              var gstDetail= getGstDetail(prodDetail.hsn);
+              if(gstDetail)
+              {
+              $('#cgst_final').val(gstDetail[0].cgst_percent);
+            
+              $('#sgst_final').val(gstDetail[0].sgst_percent);
+            
+              $('#igst_final').val(gstDetail[0].igst_percent);
+                }
+            }*/
+        deleted++;
+        $('#deleted').val(deleted)
+        cal()
+       // calculateSCitems();
+      }
+      //calculateSCitems();
+  });
+  
+
+  $('table').on("change", ".txt_product_name", function(e) {
+      var product_id = $(this).val();
+      var czid = $(this).attr("data-czid");
+      $.ajax({
+          url: "modules/products/ajax_functions.php",
+          data: { 'mode': 'getproduct_by_id', id: product_id},
+          type: 'post',
+          dataType: 'json',
+          success: function(response) {
+              if (response[0].length > 0) {
+                   for (var i = 0; i < response[0].length; i++) {
+                      $("#txt_uom_"+czid).val(response[0][i].uom);
+                      $("#txt_price_"+czid).val(parseFloat(response[0][i].product_price));
+                      var product_cgst = '';
+                      if(parseFloat(response[0][i].product_cgst) > 0){
+                        product_cgst = parseFloat(response[0][i].product_cgst);
+                      }
+                      var product_sgst = '';
+                      if(parseFloat(response[0][i].product_sgst) > 0){
+                        product_sgst = parseFloat(response[0][i].product_sgst);
+                      }
+                      var product_igst = '';
+                      if(parseFloat(response[0][i].product_igst) > 0){
+                        product_igst = parseFloat(response[0][i].product_igst);
+                      }
+                      $("#txt_cgst_"+czid).val(product_cgst);
+                      $("#txt_sgst_"+czid).val(product_sgst);
+                      $("#txt_igst_"+czid).val(product_igst);
+                   }
+                   cal();
+                  //$('.txt_product_name').chosen('destroy');
+                  //$('.txt_product_name').html('');
+                  /*for (var i = 0; i < response[0].length; i++) {
+                      if (response[0][i].pk_product_id == '9999') {
+
+                          $('.txt_product_name').append('<option value="' + response[0][i].pk_product_id + '" data-types="2">' + response[0][i].product_name + '</option>');
+                      } else {
+
+                          $('.txt_product_name').append('<option value="' + response[0][i].pk_product_id + '" data-types="1">' + response[0][i].product_name + '</option>');
+                      }
+                  }*/
+                  /*$('.txt_product_name').chosen();
+                  $("#proStatus").val(1);*/
+              } else {
+                  /*if (getQueryVariable('hnd') == pageAdd) {
+                      $('table .itemclone').html('<tr><td colspan="8" class="text-center error"> No records available in the table !</td></tr>');
+                      $("#additems").hide();
+                  }
+                  $("#proStatus").val(0);*/
+              }
+          },
+          error: function(response) {
+              console.log(response);
+          }
+      });
+  });
+</script>
+<style type="text/css">
+  .theme-form .control-field {
+    /*display: flex;*/
+}
+.select2 {
+      width: 100% !important;
+}
+.one-half-column {
+    width: 49.5%;
+    padding: 0;
+    float: left;
+}
+.custom_table_widths {
+    width: 60%;
+}
+.table-div {
+    clear: left;
+}
+.colum_split{
+  display: flex;
+}
+.custom_table_widths .table-div table tbody tr:first-child td .gstcol span.totalamounts_sec {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.custom_table_widths .table-div table tbody tr:first-child td .gstcol span.totalamounts_sec label {
+    padding-right: 15px;
+}
+.custom_table_widths .table-div table tbody tr:first-child td .gstcol span.totalamounts_sec .input-group {
+    margin-right: 20px !important;
+    width: 65% !important;
+}
+#txt_cal_type_cgst_final, #txt_cal_type_sgst_final, #txt_cal_type_igst_final {
+    width: 15% !important;
+    height: 32px !important;
+    margin-left: 10px !important;
+}
+input[type="checkbox"], input[type="radio"] {
+    margin: 4px 0 0;
+    margin-top: 1px\9;
+    line-height: normal;
+}
+.table .form-control {
+    padding: 6px;
+}
+label {
+    font-weight: normal;
+    text-transform: uppercase;
+}
+label {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+.custom_table_widths .table-div table tbody tr:nth-child(n+2) td:first-child input {
+    width: 80% !important;
+}
+.custom_table_widths .table-div table tbody tr td:first-child select#txt_cal_types_comm {
+    width: 15% !important;
+    float: right !important;
+}
+select#txt_cal_types_comm {
+    margin-left: 10px !important;
+}
+.class_per{
+      text-align: center !important;
+    width: 20%;
+    float: left;
+}
+.class_amt{
+    width: 75%;
+    float: left;
+    margin-left: 5%;
+}
+</style>
+
+<script type="text/javascript">
+  var e = 0;
+    $('.addextraitemscomm').on('click', function() {
+        var itemTot = $("#txt_item_total").val();
+        var tcont = $('tbody.totalamounts tr').length;
+        if (tcont > 2) {
+            var evalues = parseInt(tcont) - 2;
+            e = evalues;
+        }
+        $('table.amountdetails tbody.totalamounts').find('tr:last').prev().after('<tr class="apRow"><td class="text-right"><input type="text" name="txt_field_name_comm[]" class="form-control txt_field_name_comm pull-left" id="txt_field_name_comm_' + e + '" placeholder="Field Name"><select class="form-control txt_cal_types_comm pull-left numbersOnly extrapricescomm chosen" name="txt_cal_types_comm[]" id="txt_cal_types_comm"><option value="1" selected>+</option><option value="2">-</option></select></td><td><input type="text" name="txt_field_value_comm[]" class="form-control txt_field_value_comm totalcalc extrapricescomm pull-right text-right numberss" id="txt_field_value_comm" min="0" max="' + itemTot + '"></td><td><button type="button" class="btn btn-danger pull-left removeextraitems"><i class="fa fa-minus" aria-hidden="true"></i></button></td></tr>');
+        $('.extrapricescomm').on('focusout change', function() {
+            calculateSCitems();
+        });
+        getAllExtraCharges(e);
+        validatefunctions();
+    });
+
+    var f = 0;
+    $('.addextraitemscommedit').on('click', function() {
+        var itemTot = $("#txt_item_total").val();
+        var tcont = $('tbody.totalamountsedit tr').length;
+        if (tcont > 2) {
+            var fvalues = parseInt(tcont) - 2;
+            f = fvalues;
+        }
+        $('table.amountdetailsedit tbody.totalamountsedit').find('tr:last').prev().after('<tr class="apRow"><td class="text-right"><input type="text" name="txt_field_name_comm[]" class="form-control txt_field_name_comm pull-left" id="txt_field_name_comm_' + f + '" placeholder="Field Name"><select class="form-control txt_cal_types_comm pull-left numbersOnly extrapricescomm chosen" name="txt_cal_types_comm[]" id="txt_cal_types_comm"><option value="1" selected>+</option><option value="2">-</option></select></td><td><input type="text" name="txt_field_value_comm[]" class="form-control txt_field_value_comm totalcalc extrapricescomm pull-right text-right numberss" id="txt_field_value_comm" min="0" max="' + itemTot + '"></td><td><button type="button" class="btn btn-danger pull-left removeextraitems"><i class="fa fa-minus" aria-hidden="true"></i></button></td></tr>');
+
+        $('.extrapricescomm').on('focusout change', function() {
+            calculateSCitems();
+        });
+        getAllExtraCharges(f);
+        validatefunctions();
+    });
+  $('table').on("click", ".removeextraitems", function(e) {
+        e.preventDefault();
+        $(this).closest('tr').remove();
+        calculateSCitems();
+        //setTimeout(function() { ProductDisable(); }, 500);
+    });
+
+function cgst(pos){
+  var txt_cgst  = $("#txt_cgst_"+pos).val();
+  if(parseFloat(txt_cgst) > 0){
+    $("#txt_igst_"+pos).val("");
+    $("#txt_igst_amt_"+pos).val("");
+  }
+  cal();
+}
+function sgst(pos){
+  var txt_sgst  = $("#txt_sgst_"+pos).val();
+  if(parseFloat(txt_sgst) > 0){
+    $("#txt_igst_"+pos).val("");
+    $("#txt_igst_amt_"+pos).val("");
+  }
+  cal();
+}
+
+function igst(pos){
+  var txt_igst  = $("#txt_igst_"+pos).val();
+  if(parseFloat(txt_igst) > 0){
+    $("#txt_cgst_"+pos).val("");
+    $("#txt_cgst_amt_"+pos).val("");
+    $("#txt_sgst_"+pos).val("");
+    $("#txt_sgst_amt_"+pos).val("");
+  }
+  cal();
+}
+
+function cgst_final_function(){
+  var cgst_final = $("#cgst_final").val();
+  if(parseFloat(cgst_final) > 0){
+    $("#igst_final").val("");
+    $("#txt_igst_amt_final").val("");
+  }
+  cal()
+}
+
+function sgst_final_function(){
+  var sgst_final = $("#sgst_final").val();
+  if(parseFloat(sgst_final) > 0){
+    $("#igst_final").val("");
+    $("#txt_igst_amt_final").val("");
+  }
+  cal()
+}
+
+function igst_final_function(){
+  var igst_final = $("#igst_final").val();
+  if(parseFloat(igst_final) > 0){
+    $("#cgst_final").val("");
+    $("#sgst_final").val("");
+    $("#txt_cgst_amt_final").val("");
+    $("#txt_sgst_amt_final").val("");
+  }
+  cal()
+}
+
+
+
+  function cal(){
+    var deleted=$('#deleted').val();
+    var rowCount = $('.itemTable >tbody >tr').length;
+    var total_length = parseFloat(rowCount) + parseFloat(deleted);
+    var total_total_amount = 0;
+    var total_amount = 0;
+    var cgst_amttot = 0;
+    var sgst_amttot = 0;
+    var igst_amttot = 0;
+    for (var i = 1; i <= total_length; i++) {
+      var taxable_total = 0;
+      var qty = $("#txt_product_qty_"+i).val();
+      if(parseFloat(qty) > 0){
+        qty = qty;
+      
+      }
+      else{
+        qty = 0;
+      }
+
+      var price = $("#txt_price_"+i).val();
+
+
+      if(parseFloat(price) > 0){
+        price = price;
+      }
+      else{
+        price = 0;
+      }
+      
+      taxable_total = parseFloat(qty) * parseFloat(price);
+      $("#txt_total_"+i).val(parseFloat(taxable_total).toFixed(2));
+
+      
+      
+      if(parseFloat(taxable_total) > 0){
+
+      }
+      else{
+        total_total_amount = total_total_amount + 0;
+        $("#txt_total_"+i).val("");
+        $("#txt_final_total_"+i).val("");
+      }
+
+      var cgst = $("#txt_cgst_"+i).val();
+        if(parseFloat(cgst) > 0){
+          cgst = cgst;
+        }
+        else{
+          cgst = 0;
+        }
+        var cgst_per = parseFloat(cgst) / 100;
+        var cgst_amt = parseFloat(cgst_per) * parseFloat(taxable_total);
+
+        if(parseFloat(cgst_amt) > 0){
+          $("#txt_cgst_amt_"+i).val(parseFloat(cgst_amt).toFixed(2));
+
+          cgst_amttot = cgst_amttot + parseFloat(cgst_amt);
+        }
+        else{
+          $("#txt_cgst_amt_"+i).val("");
+        }
+
+        var sgst = $("#txt_sgst_"+i).val();
+        if(parseFloat(sgst) > 0){
+          sgst = sgst;
+        }
+        else{
+          sgst = 0;
+        }
+        var sgst_per = parseFloat(sgst) / 100;
+        var sgst_amt = parseFloat(sgst_per) * parseFloat(taxable_total);
+
+        if(parseFloat(sgst_amt) > 0){
+          $("#txt_sgst_amt_"+i).val(parseFloat(sgst_amt).toFixed(2));
+           sgst_amttot = sgst_amttot + parseFloat(sgst_amt);
+        }
+        else{
+          $("#txt_sgst_amt_"+i).val("");
+        }
+
+        //var total_amount = parseFloat(taxable_total) + parseFloat(cgst_amt) + parseFloat(sgst_amt);
+
+
+        var igst = $("#txt_igst_"+i).val();
+        if(parseFloat(igst) > 0){
+          igst = igst;
+        }
+        else{
+          igst = 0;
+        }
+        var igst_per = parseFloat(igst) / 100;
+        var igst_amt = parseFloat(igst_per) * parseFloat(taxable_total);
+
+        if(parseFloat(igst_amt) > 0){
+          $("#txt_igst_amt_"+i).val(parseFloat(igst_amt).toFixed(2));
+           igst_amttot = igst_amttot  + parseFloat(igst_amt);
+
+        }
+        else{
+          $("#txt_igst_amt_"+i).val("");
+        }
+
+        var total_amount = parseFloat(taxable_total) + parseFloat(cgst_amt) + parseFloat(sgst_amt) + parseFloat(igst_amt);
+
+
+        total_total_amount = total_total_amount + total_amount;
+
+        $("#txt_final_total_"+i).val(parseFloat(total_amount).toFixed(2));
+    }
+    var cgst_final_amt = cgst_amttot.toFixed(2);
+    var sgst_final_amt = sgst_amttot.toFixed(2);
+    var igst_final_amt = igst_amttot.toFixed(2);
+    $("#txt_cgst_amt_final").val(cgst_final_amt);
+    $("#txt_sgst_amt_final").val(sgst_final_amt);
+    $("#txt_igst_amt_final").val(igst_final_amt);
+    
+    $("#txt_item_total").val(parseFloat(total_total_amount).toFixed(2));
+
+
+  //  $("#txt_item_total").val(parseFloat(total_total_amount).toFixed(2));
+ //   $("#txt_item_total").val(parseFloat(total_total_amount).toFixed(2));
+  //  $("#txt_item_total").val(parseFloat(total_total_amount).toFixed(2));
+ /*  
+    var cgst_final = $("#cgst_final").val();
+    if(parseFloat(cgst_final) > 0){
+   
+    }
+    else{
+      cgst_final = 0;
+    }
+ var cgst_final_per = parseFloat(cgst_final) / 100;
+    var cgst_final_amt = parseFloat(cgst_final_per) * parseFloat(total_total_amount);
+    if(parseFloat(cgst_final_amt) > 0){
+      $("#txt_cgst_amt_final").val(parseFloat(cgst_final_amt).toFixed(2));
+    }
+    else{
+      $("#txt_cgst_amt_final").val("");
+    }
+
+
+    var sgst_final = $("#sgst_final").val();
+    if(parseFloat(sgst_final) > 0){
+
+    }
+    else{
+      sgst_final = 0;
+    }
+    var sgst_final_per = parseFloat(sgst_final) / 100;
+    var sgst_final_amt = parseFloat(sgst_final_per) * parseFloat(total_total_amount);
+    if(parseFloat(sgst_final_amt) > 0){
+      $("#txt_sgst_amt_final").val(parseFloat(sgst_final_amt).toFixed(2));
+    }
+    else{
+      $("#txt_sgst_amt_final").val("");
+    }
+
+    var igst_final = $("#igst_final").val();
+    if(parseFloat(igst_final) > 0){
+     
+    }
+    else{
+      igst_final = 0;
+    }
+    var igst_final_per = parseFloat(igst_final) / 100;
+    var igst_final_amt = parseFloat(igst_final_per) * parseFloat(total_total_amount);
+    if(parseFloat(igst_final_amt) > 0){
+      $("#txt_igst_amt_final").val(parseFloat(igst_final_amt).toFixed(2));
+    }
+    else{
+      $("#txt_igst_amt_final").val("");
+    }*/
+    var gst_total = parseFloat(igst_final_amt) + parseFloat(sgst_final_amt) + parseFloat(cgst_final_amt);
+
+    if(parseFloat(gst_total) > 0){
+      $("#txt_gst_total").val(parseFloat(gst_total).toFixed(2));
+    }
+    else{
+      $("#txt_gst_total").val("");
+    }
+    
+
+    var discount_final = $("#discount_final").val();
+    if(parseFloat(discount_final) > 0){
+
+    }
+    else{
+      discount_final = 0;
+    }
+    var gst_total_final_amount = parseFloat(gst_total) + parseFloat(total_total_amount);
+
+    var discount_final_per = parseFloat(discount_final) / 100;
+    var discount_final_amt = parseFloat(discount_final_per) * parseFloat(gst_total_final_amount);
+
+    if(parseFloat(discount_final_amt) > 0){
+      $("#discount_final_amt").val(parseFloat(discount_final_amt).toFixed(2));
+    }
+    else{
+      $("#discount_final_amt").val("");
+    }
+
+    var grand_total = parseFloat(gst_total_final_amount)  - parseFloat(discount_final_amt);
+    $("#txt_grand_total").val(parseFloat(grand_total).toFixed(2));
+  }
+</script>
+<script type="text/javascript">
+  $(document).on("keypress keyup blur", ".numbersOnly", function(event) {
+        var $input = $(this);
+        var regex = /^\d+$/;
+        if (!regex.test($input.val())) {
+            $input.val($input.val().replace(/\D/, ''));
+        }
+    });
+    $(document).on("keypress", '.numberss', function(event) {
+        if ((event.which != 46 || $(this).val().indexOf('.') != -1) && (event.which < 48 || event.which > 57)) {
+            event.preventDefault();
+        }
+    });
+     $('#form_sale_order_add').validate({
+        rules: {
+            txt_customer_name: { required: true },
+            txt_pi_date: { required: true },
+            'txt_product_name[]': { required: true },
+            'txt_uom[]': { required: true },
+            'txt_product_qty[]': { required: true },
+            'txt_price[]': { required: true },
+            'txt_total[]': { required: true },
+            'txt_grand_total[]': { required: true },
+        },
+        submitHandler: function(form) {
+          var formData = new FormData($('#form_sale_order_add')[0]);
+          $.ajax({
+            url: "modules/sales/ajax_functions.php",
+            data: formData,
+            type: 'post',
+            async: false,
+            dataType: 'json',
+            success: function(response) {
+              if(response == 1){
+                swal({
+                  title: "Success!",
+                  text: "Sales Order has been added successfully!.",
+                  type: "success",
+                  timer: 1000,
+                  buttons: false,
+                  }).then(function() {
+                    window.location.href = "index.php?erp=13";
+                });
+              }
+              else{
+                swal("Failed!", "Something went wrong, Try again!", "error");
+              }
+            },
+            error: function(response) {
+              $('.btn_save').prop("disabled",false);
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+          });
+        },
+    });
+$("input:checkbox").on('click', function() {
+  // in the handler, 'this' refers to the box clicked on
+  var $box = $(this);
+  if ($box.is(":checked")) {
+    // the name of the box is retrieved using the .attr() method
+    // as it is assumed and expected to be immutable
+    var group = "input:checkbox[name='" + $box.attr("name") + "']";
+    // the checked state of the group/box on the other hand will change
+    // and the current value is retrieved using .prop() method
+    $(group).prop("checked", false);
+    $box.prop("checked", true);
+  } else {
+    $box.prop("checked", false);
+  }
+});
+
+
+</script>
