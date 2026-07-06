@@ -9,53 +9,61 @@ pipeline {
         timestamps()
     }
 
-    environment {
-        PROJECT_NAME = 'AVP-stagging'
-        DEPLOY_PATH  = 'D:/Xampp-Dont Delete/htdocs/AVP-stagging'
-        BACKUP_PATH  = 'D:/Xampp-Dont Delete/htdocs/backup'
-        PHP_PATH     = 'D:/Xampp-Dont Delete/php/php.exe'
-    }
-
     stages {
-
-        stage('Initialize') {
-            steps {
-                echo "========================================"
-                echo "ERP STAGING CI/CD PIPELINE"
-                echo "========================================"
-
-                echo "Project   : ${PROJECT_NAME}"
-                echo "Build     : ${BUILD_NUMBER}"
-                echo "Workspace : ${WORKSPACE}"
-                echo "Node      : ${NODE_NAME}"
-            }
-        }
 
         stage('Checkout Source') {
             steps {
                 checkout scm
             }
         }
-        
-        stage('Debug') {
+
+        stage('Load Configuration') {
             steps {
-                bat 'echo %PATH%'
-                bat 'dir "C:\\Windows\\System32\\where.exe"'
-                bat 'dir "D:\\Software\\Xampp-Dont Delete\\php"'
-           }
+                script {
+
+                    def props = readProperties file: 'config/pipeline.properties'
+
+                    props.each { key, value ->
+                        env[key] = value
+                    }
+
+                    echo "========================================"
+                    echo "Configuration Loaded"
+                    echo "========================================"
+                }
+            }
+        }
+
+        stage('Initialize') {
+            steps {
+
+                echo "========================================"
+                echo "ERP STAGING CI/CD PIPELINE"
+                echo "========================================"
+
+                echo "Project      : ${env.PROJECT_NAME}"
+                echo "Environment  : ${env.ENVIRONMENT}"
+                echo "Build        : ${BUILD_NUMBER}"
+                echo "Workspace    : ${WORKSPACE}"
+                echo "Node         : ${NODE_NAME}"
+            }
         }
 
         stage('Verify Environment') {
             steps {
-                bat 'git --version'
-                bat 'php -v'
-                bat 'composer --version'
+
+                bat "\"${env.PHP_PATH}\" -v"
+
+                bat "\"${env.PHP_PATH}\" \"${env.COMPOSER}\" --version"
+
             }
         }
 
         stage('Composer Install') {
             steps {
-                bat 'composer install --no-dev --prefer-dist --optimize-autoloader'
+
+                bat "\"${env.PHP_PATH}\" \"${env.COMPOSER}\" install --no-dev --prefer-dist --optimize-autoloader"
+
             }
         }
 
@@ -75,7 +83,6 @@ pipeline {
             steps {
                 bat 'scripts\\verify.bat'
             }
-
         }
 
         stage('Backup') {
@@ -91,23 +98,15 @@ pipeline {
         }
 
         stage('Deploy (Phase 1)') {
-
             steps {
-
-                 bat 'scripts\\deploy.bat'
-
+                bat 'scripts\\deploy.bat'
             }
+        }
 
-       }
-
-       stage('Verify Deployment') {
-
+        stage('Verify Deployment') {
             steps {
-
                 bat 'scripts\\verify-deployment.bat'
-
             }
-
         }
 
         stage('Disable Maintenance Mode') {
@@ -115,7 +114,6 @@ pipeline {
                 bat 'scripts\\maintenance-off.bat'
             }
         }
-
     }
 
     post {
