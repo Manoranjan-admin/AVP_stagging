@@ -10,8 +10,8 @@ echo.
 :: Configuration
 :: ------------------------------
 set PROJECT_NAME=AVP-stagging
-set PROJECT_PATH=D:\Xampp-Dont Delete\htdocs\AVP-stagging
-set BACKUP_ROOT=D:\Xampp-Dont Delete\htdocs\backup
+set PROJECT_PATH=D:\Software\Xampp-Dont Delete\htdocs\AVP-stagging
+set BACKUP_ROOT=D:\Software\Xampp-Dont Delete\htdocs\backup
 
 :: ------------------------------
 :: Generate Timestamp
@@ -42,17 +42,32 @@ echo.
 echo [INFO] Creating Project Backup...
 echo.
 
-robocopy "%PROJECT_PATH%" "%BACKUP_PATH%" /E /R:2 /W:2 /XD ".git" ".github" ".vscode" "scripts" "backup" "logs" "build" /XF "Jenkinsfile" ".gitignore" "README.md" /LOG:"%BACKUP_PATH%\backup.log"
+robocopy "%PROJECT_PATH%" "%BACKUP_PATH%" /E /R:2 /W:2 ^
+ /XD ".git" ".github" ".vscode" "scripts" "backup" "logs" "build" ^
+ /XF "Jenkinsfile" ".gitignore" "README.md" ^
+ /LOG:"%BACKUP_PATH%\backup.log"
 
 :: ------------------------------
-:: Check Result
+:: Capture Robocopy Exit Code
 :: ------------------------------
-if %ERRORLEVEL% GEQ 8 (
+set RC=%ERRORLEVEL%
+
+echo.
+echo ===============================================
+echo Robocopy Exit Code = %RC%
+echo ===============================================
+
+:: ------------------------------
+:: Robocopy Exit Codes
+:: 0-7 = Success
+:: 8+  = Failure
+:: ------------------------------
+if %RC% LSS 8 (
     echo.
-    echo [ERROR] Backup Failed.
-    exit /b 1
+    echo [SUCCESS] Backup Completed Successfully.
+    exit /b 0
 )
 
 echo.
-echo [SUCCESS] Backup Completed Successfully.
-exit /b 0
+echo [ERROR] Backup Failed with Exit Code %RC%
+exit /b %RC%

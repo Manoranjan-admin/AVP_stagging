@@ -13,7 +13,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 $org_servername = 'localhost';
 $org_dbusername = 'root';
 $org_dbpassword = '';
-$org_dbname = 'AVP-stagging';
+$org_dbname = 'erp-stagging-new';
 
 $org_tablePrefix = 'erp_';
 $org_name = "ERP";
