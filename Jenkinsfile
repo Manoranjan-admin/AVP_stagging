@@ -36,6 +36,12 @@ pipeline {
                 checkout scm
             }
         }
+        stage('Test PHP PATH') {
+            steps {
+                bat 'where php'
+                bat 'php -v'
+            }
+  }
 
         stage('Verify Environment') {
             steps {
