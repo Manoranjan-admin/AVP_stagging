@@ -5,7 +5,7 @@ echo ==========================================
 echo VERIFY DEPLOYMENT
 echo ==========================================
 
-set "DEPLOY_PATH=D:\Xampp-Dont Delete\htdocs\AVP-stagging"
+set "DEPLOY_PATH=D:\Software\Xampp-Dont Delete\htdocs\AVP-stagging"
 
 echo.
 
