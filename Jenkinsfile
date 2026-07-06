@@ -19,26 +19,27 @@ pipeline {
 
         stage('Load Configuration') {
             steps {
-        script {
-                 def props = readProperties file: 'config/pipeline.properties'
+                script {
 
-                env.PROJECT_NAME     = props['PROJECT_NAME']
-                env.DEPLOY_PATH      = props['DEPLOY_PATH']
-                env.BACKUP_PATH      = props['BACKUP_PATH']
-                env.TEMP_DEPLOY_PATH = props['TEMP_DEPLOY_PATH']
-                env.PHP_PATH         = props['PHP_PATH']
-                env.COMPOSER         = props['COMPOSER']
-                env.MYSQL_PATH       = props['MYSQL_PATH']
-                env.ENVIRONMENT      = props['ENVIRONMENT']
+                    def props = readProperties file: 'config/pipeline.properties'
 
-                echo "========================================"
-                echo "Configuration Loaded"
-                echo "Project : ${env.PROJECT_NAME}"
-                echo "Environment : ${env.ENVIRONMENT}"
-                echo "========================================"
+                    env.PROJECT_NAME     = props['PROJECT_NAME']
+                    env.DEPLOY_PATH      = props['DEPLOY_PATH']
+                    env.BACKUP_PATH      = props['BACKUP_PATH']
+                    env.TEMP_DEPLOY_PATH = props['TEMP_DEPLOY_PATH']
+                    env.PHP_PATH         = props['PHP_PATH']
+                    env.COMPOSER_PATH    = props['COMPOSER_PATH']
+                    env.MYSQL_PATH       = props['MYSQL_PATH']
+                    env.ENVIRONMENT      = props['ENVIRONMENT']
+
+                    echo "========================================"
+                    echo "Configuration Loaded"
+                    echo "Project : ${env.PROJECT_NAME}"
+                    echo "Environment : ${env.ENVIRONMENT}"
+                    echo "========================================"
                 }
             }
-       }
+        }
 
         stage('Initialize') {
             steps {
@@ -60,7 +61,7 @@ pipeline {
 
                 bat "\"${env.PHP_PATH}\" -v"
 
-                bat "\"${env.PHP_PATH}\" \"${env.COMPOSER}\" --version"
+                bat "\"${env.PHP_PATH}\" \"${env.COMPOSER_PATH}\" --version"
 
             }
         }
@@ -68,7 +69,7 @@ pipeline {
         stage('Composer Install') {
             steps {
 
-                bat "\"${env.PHP_PATH}\" \"${env.COMPOSER}\" install --no-dev --prefer-dist --optimize-autoloader"
+                bat "\"${env.PHP_PATH}\" \"${env.COMPOSER_PATH}\" install --no-dev --prefer-dist --optimize-autoloader"
 
             }
         }
