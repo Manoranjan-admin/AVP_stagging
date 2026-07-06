@@ -52,10 +52,19 @@ REM =====================================================
 REM Read Latest Artifact
 REM =====================================================
 
-set /p ARTIFACT_NAME=<"%LATEST_FILE%"
+for /f "usebackq delims=" %%A in ("%LATEST_FILE%") do (
+    set "ARTIFACT_NAME=%%A"
+)
+
+if not defined ARTIFACT_NAME (
+    echo [ERROR] latest.txt is empty.
+    exit /b 1
+)
+
 set "ARTIFACT_PATH=%ARTIFACT_DIR%\%ARTIFACT_NAME%"
 
-echo Latest Artifact : %ARTIFACT_NAME%
+echo Latest Artifact : [%ARTIFACT_NAME%]
+echo Artifact Path   : [%ARTIFACT_PATH%]
 
 REM =====================================================
 REM Validate ZIP
