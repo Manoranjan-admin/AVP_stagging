@@ -19,20 +19,26 @@ pipeline {
 
         stage('Load Configuration') {
             steps {
-                script {
+        script {
+                 def props = readProperties file: 'config/pipeline.properties'
 
-                    def props = readProperties file: 'config/pipeline.properties'
+                env.PROJECT_NAME     = props['PROJECT_NAME']
+                env.DEPLOY_PATH      = props['DEPLOY_PATH']
+                env.BACKUP_PATH      = props['BACKUP_PATH']
+                env.TEMP_DEPLOY_PATH = props['TEMP_DEPLOY_PATH']
+                env.PHP_PATH         = props['PHP_PATH']
+                env.COMPOSER         = props['COMPOSER']
+                env.MYSQL_PATH       = props['MYSQL_PATH']
+                env.ENVIRONMENT      = props['ENVIRONMENT']
 
-                    props.each { key, value ->
-                        env[key] = value
-                    }
-
-                    echo "========================================"
-                    echo "Configuration Loaded"
-                    echo "========================================"
+                echo "========================================"
+                echo "Configuration Loaded"
+                echo "Project : ${env.PROJECT_NAME}"
+                echo "Environment : ${env.ENVIRONMENT}"
+                echo "========================================"
                 }
             }
-        }
+       }
 
         stage('Initialize') {
             steps {
