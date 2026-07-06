@@ -36,12 +36,14 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Test PHP PATH') {
+        
+        stage('Debug') {
             steps {
-                bat 'where php'
-                bat 'php -v'
-            }
-  }
+                bat 'echo %PATH%'
+                bat 'dir "C:\\Windows\\System32\\where.exe"'
+                bat 'dir "D:\\Software\\Xampp-Dont Delete\\php"'
+           }
+        }
 
         stage('Verify Environment') {
             steps {
