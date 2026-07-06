@@ -37,7 +37,7 @@ define('DB_CONN_1', '');
 define('ORG_NAME', $org_name);
 define('ORG_HEAD', $org_header);
 define('COMPANY_PREFIX', $company_prefix);
-define('BASE_URL', "http://localhost/erp-stagging-new-master/");
+define('BASE_URL', "http://localhost/AVP-stagging/");
 
 /**** TABLE PREFIX CONFIG - WITH BACKTICKS FOR HYPHEN IN DB NAME ****/
 define('admin_db_prefix', '`'.$org_dbname.'`.'.$org_tablePrefix);
