@@ -119,6 +119,33 @@ if not exist "%ARTIFACT_DIR%\checksum.sha256" (
 echo Checksum created successfully.
 echo.
 
+REM =====================================================
+REM Generate latest.txt
+REM =====================================================
+
+echo Generating latest.txt...
+
+(
+echo ======================================
+echo LATEST BUILD INFORMATION
+echo ======================================
+echo Project=%PROJECT_NAME%
+echo Build=%BUILD_NUMBER%
+echo Artifact=%ARTIFACT_NAME%
+echo Date=%DATE%
+echo Time=%TIME%
+echo Computer=%COMPUTERNAME%
+echo Environment=STAGING
+)> "%ARTIFACT_DIR%\latest.txt"
+
+if not exist "%ARTIFACT_DIR%\latest.txt" (
+    echo ERROR: latest.txt creation failed.
+    exit /b 1
+)
+
+echo latest.txt created successfully.
+echo.
+
 
 echo ==========================================
 echo BUILD PACKAGE COMPLETED SUCCESSFULLY
