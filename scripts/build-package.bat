@@ -119,20 +119,6 @@ if not exist "%ARTIFACT_DIR%\checksum.sha256" (
 echo Checksum created successfully.
 echo.
 
-REM =====================================================
-REM Save Latest Artifact
-REM =====================================================
-
-<nul set /p="%ARTIFACT_NAME%">"%ARTIFACT_DIR%\latest.txt"
-echo.>>"%ARTIFACT_DIR%\latest.txt"  
-
-if not exist "%ARTIFACT_DIR%\latest.txt" (
-    echo ERROR: latest.txt was not created.
-    exit /b 1
-)
-
-echo latest.txt created successfully.
-echo.
 
 echo ==========================================
 echo BUILD PACKAGE COMPLETED SUCCESSFULLY

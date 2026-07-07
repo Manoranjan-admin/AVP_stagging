@@ -31,6 +31,7 @@ pipeline {
                     env.COMPOSER_PATH    = props['COMPOSER_PATH']
                     env.MYSQL_PATH       = props['MYSQL_PATH']
                     env.ENVIRONMENT      = props['ENVIRONMENT']
+                    env.EMAIL_TO         = props['EMAIL_TO']
 
                     echo "========================================"
                     echo "Configuration Loaded"
@@ -96,7 +97,7 @@ pipeline {
             steps {
                 bat 'scripts\\prepare-deployment.bat'
             }
-        }
+         }
 
         stage('Backup') {
             steps {
@@ -129,26 +130,165 @@ pipeline {
         }
     }
 
-    post {
+   post {
 
-        success {
+    success {
 
-            archiveArtifacts artifacts: 'build/artifacts/**', fingerprint: true
+        archiveArtifacts artifacts: 'build/artifacts/**', fingerprint: true
 
-            echo "========================================"
-            echo "BUILD SUCCESSFUL"
-            echo "========================================"
-        }
+        emailext(
+            to: env.EMAIL_TO,
+            subject: "SUCCESS | ${env.PROJECT_NAME} | Build #${env.BUILD_NUMBER}",
+            mimeType: 'text/html',
+            attachLog: true,
+            compressLog: true,
+            body: """
+<html>
+<body style="font-family: Arial, sans-serif;">
 
-        failure {
+<h2 style="color:green;">Build Successful</h2>
 
-            echo "========================================"
-            echo "BUILD FAILED"
-            echo "========================================"
-        }
+<p>The deployment completed successfully.</p>
 
-        cleanup {
-            cleanWs()
-        }
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;">
+
+<tr>
+    <td><b>Project</b></td>
+    <td>${env.PROJECT_NAME}</td>
+</tr>
+
+<tr>
+    <td><b>Environment</b></td>
+    <td>${env.ENVIRONMENT}</td>
+</tr>
+
+<tr>
+    <td><b>Job Name</b></td>
+    <td>${env.JOB_NAME}</td>
+</tr>
+
+<tr>
+    <td><b>Build Number</b></td>
+    <td>${env.BUILD_NUMBER}</td>
+</tr>
+
+<tr>
+    <td><b>Status</b></td>
+    <td style="color:green;"><b>SUCCESS</b></td>
+</tr>
+
+<tr>
+    <td><b>Agent</b></td>
+    <td>${env.NODE_NAME}</td>
+</tr>
+
+<tr>
+    <td><b>Build URL</b></td>
+    <td><a href="${env.BUILD_URL}">${env.BUILD_URL}</a></td>
+</tr>
+
+<tr>
+    <td><b>Console Output</b></td>
+    <td><a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></td>
+</tr>
+
+</table>
+
+<br>
+
+Regards,<br>
+<b>Jenkins CI/CD Pipeline</b>
+
+</body>
+</html>
+"""
+        )
+
+        echo "========================================"
+        echo "BUILD SUCCESSFUL"
+        echo "========================================"
+    }
+
+    failure {
+
+        emailext(
+            to: env.EMAIL_TO,
+            subject: "FAILED | ${env.PROJECT_NAME} | Build #${env.BUILD_NUMBER}",
+            mimeType: 'text/html',
+            attachLog: true,
+            compressLog: true,
+            body: """
+<html>
+<body style="font-family: Arial, sans-serif;">
+
+<h2 style="color:red;">Build Failed</h2>
+
+<p>The deployment failed.</p>
+
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;">
+
+<tr>
+    <td><b>Project</b></td>
+    <td>${env.PROJECT_NAME}</td>
+</tr>
+
+<tr>
+    <td><b>Environment</b></td>
+    <td>${env.ENVIRONMENT}</td>
+</tr>
+
+<tr>
+    <td><b>Job Name</b></td>
+    <td>${env.JOB_NAME}</td>
+</tr>
+
+<tr>
+    <td><b>Build Number</b></td>
+    <td>${env.BUILD_NUMBER}</td>
+</tr>
+
+<tr>
+    <td><b>Status</b></td>
+    <td style="color:red;"><b>FAILED</b></td>
+</tr>
+
+<tr>
+    <td><b>Agent</b></td>
+    <td>${env.NODE_NAME}</td>
+</tr>
+
+<tr>
+    <td><b>Build URL</b></td>
+    <td><a href="${env.BUILD_URL}">${env.BUILD_URL}</a></td>
+</tr>
+
+<tr>
+    <td><b>Console Output</b></td>
+    <td><a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></td>
+</tr>
+
+</table>
+
+<br>
+
+Please check the attached console log for more details.
+
+<br><br>
+
+Regards,<br>
+<b>Jenkins CI/CD Pipeline</b>
+
+</body>
+</html>
+"""
+        )
+
+        echo "========================================"
+        echo "BUILD FAILED"
+        echo "========================================"
+    }
+
+    cleanup {
+        cleanWs()
     }
 }
